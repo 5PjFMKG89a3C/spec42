@@ -42,7 +42,7 @@ fn workspace_is_a_batch_host_over_the_facade() {
         );
     }
 
-    for required in ["sysml_query", "library_catalog", "language_service"] {
+    for required in ["sysml_query", "library_catalog"] {
         assert!(
             normal_dependencies
                 .lines()

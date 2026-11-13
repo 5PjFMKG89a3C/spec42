@@ -25,7 +25,7 @@ jobs:
 
       - uses: ./.github/actions/prepare-rust-ci
         with:
-          targets: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown wasm32-wasip2
           install-deny: "true"
 
       - name: Mini CI (lint)
