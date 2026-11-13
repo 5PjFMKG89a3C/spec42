@@ -65,6 +65,13 @@ if needs_wasm && ! rustup target list --installed | grep -q '^wasm32-unknown-unk
   exit 2
 fi
 
+# The Zed extension is linted for its real target.
+if wants lint && ! rustup target list --installed | grep -q '^wasm32-wasip2$'; then
+  echo "error: the wasm32-wasip2 Rust target is not installed" >&2
+  echo "install it explicitly with: rustup target add wasm32-wasip2" >&2
+  exit 2
+fi
+
 if git submodule status --recursive | grep -q '^-'; then
   echo "error: repository submodules are not initialized" >&2
   echo "initialize them explicitly with: git submodule update --init --recursive" >&2
@@ -92,8 +99,23 @@ if wants lint; then
   step "Formatting"
   cargo fmt --all -- --check
 
+  # `-- -D warnings` only reaches rustc and Clippy. Cargo's own lints (unused_dependencies,
+  # unused_workspace_dependencies, ...) stay warn-by-default for local builds; build.warnings=deny
+  # makes the lint suite fail on them too.
   step "Workspace Clippy (all targets and features)"
-  cargo clippy --workspace --all-targets --all-features -- -D warnings
+  CARGO_BUILD_WARNINGS=deny cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  # The repository's other Cargo workspaces are kept out of the root one (wasm-only or
+  # cargo-fuzz), so `--workspace` above never reaches them. Lint each for the target it ships on.
+  step "Nested workspace Clippy (generator guests, Zed extension, fuzz targets)"
+  CARGO_BUILD_WARNINGS=deny cargo clippy --manifest-path generator-plugins/Cargo.toml --workspace \
+    --all-targets --all-features --target wasm32-unknown-unknown -- -D warnings
+  CARGO_BUILD_WARNINGS=deny cargo clippy --manifest-path generator-tests/plugins/Cargo.toml --workspace \
+    --all-targets --all-features --target wasm32-unknown-unknown -- -D warnings
+  CARGO_BUILD_WARNINGS=deny cargo clippy --manifest-path zed/Cargo.toml \
+    --all-targets --all-features --target wasm32-wasip2 -- -D warnings
+  CARGO_BUILD_WARNINGS=deny cargo clippy --manifest-path fuzz/Cargo.toml \
+    --all-targets --all-features -- -D warnings
 
   step "Dependency policy"
   require_command cargo-deny

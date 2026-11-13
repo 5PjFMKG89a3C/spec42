@@ -26,7 +26,7 @@ base64 = "0.22"
 sysml_diagnostics = { path = "../sysml_diagnostics" }
 sysml_query = { path = "../sysml_query" }
 sysml_tokens = { path = "../sysml_tokens" }
-petgraph = { workspace = true }
+
 tower-lsp = "0.20"
 tokio = { version = "1.53.3", features = ["full"] }
 serde = { workspace = true }
@@ -39,7 +39,7 @@ tempfile = { workspace = true }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 toml = { workspace = true }
-glob = "0.3"
+
 rayon = "1.12"
 
 [dev-dependencies]
